@@ -1,30 +1,27 @@
-/* ==========================================================================
-   SECCIÓN 1: CONSTANTES Y REFERENCIAS AL DOM
-   ========================================================================== */
 const STORAGE_KEY = 'taller_mecanico_registros';
 
 const form = document.getElementById('formRegistro');
 const tablaCuerpo = document.getElementById('tablaCuerpo');
 const sinRegistros = document.getElementById('sinRegistros');
 const contadorVehiculos = document.getElementById('contadorVehiculos');
+const inputBusqueda = document.getElementById('inputBusqueda');
 
-/* ==========================================================================
-   SECCIÓN 2: INICIALIZACIÓN Y EVENTOS PRINCIPALES
-   ========================================================================== */
-document.addEventListener('DOMContentLoaded', renderizarTabla);
+document.addEventListener('DOMContentLoaded', () => {
+    renderizarTabla();
+    if (inputBusqueda) {
+        inputBusqueda.addEventListener('input', renderizarTabla);
+    }
+});
 
-// Captura y validación del formulario de registro
 form.addEventListener('submit', function(e) {
     e.preventDefault();
 
-    // Verificación de campos obligatorios mediante Bootstrap
     if (!form.checkValidity()) {
         e.stopPropagation();
         form.classList.add('was-validated');
         return;
     }
 
-    // CAMBIO: Construcción del nuevo registro con estado inicial por defecto
     const nuevoIngreso = {
         id: Date.now(),
         fecha: new Date().toLocaleDateString('es-MX', { 
@@ -39,11 +36,9 @@ form.addEventListener('submit', function(e) {
         vehiculo: document.getElementById('vehiculo').value.trim(),
         anio: document.getElementById('anio').value.trim() || 'N/A',
         placas: document.getElementById('placas').value.trim().toUpperCase(),
-        kilometraje: document.getElementById('kilometraje').value.trim() 
-            ? `${document.getElementById('kilometraje').value} km` 
-            : 'N/A',
+        kilometraje: document.getElementById('kilometraje').value.trim() ? `${document.getElementById('kilometraje').value} km` : 'N/A',
         problema: document.getElementById('problema').value.trim(),
-        estado: 'En revisión' // NUEVO: Todo vehículo inicia 'En revisión'
+        estado: 'En revisión'
     };
 
     guardarRegistro(nuevoIngreso);
@@ -52,41 +47,29 @@ form.addEventListener('submit', function(e) {
     renderizarTabla();
 });
 
-/* ==========================================================================
-   SECCIÓN 3: GESTIÓN DE ALMACENAMIENTO (LOCALSTORAGE)
-   ========================================================================== */
-
-// Lee el arreglo de autos guardados
 function obtenerRegistros() {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : [];
 }
 
-// Guarda un nuevo auto al inicio de la lista
 function guardarRegistro(item) {
     const lista = obtenerRegistros();
     lista.unshift(item);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
 }
 
-// CAMBIO / NUEVA FUNCIÓN: Permite al mecánico cambiar el estado en tiempo real
 function cambiarEstado(id, nuevoEstado) {
     let lista = obtenerRegistros();
-    
-    // Se actualiza únicamente el registro cuyo ID coincida
     lista = lista.map(item => {
         if (item.id === id) {
             return { ...item, estado: nuevoEstado };
         }
         return item;
     });
-
-    // Guardado y re-renderizado para actualizar colores y clases visuales
     localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
     renderizarTabla();
 }
 
-// Elimina una orden de trabajo de la base de datos local
 function eliminarRegistro(id) {
     if (confirm('¿Deseas dar salida o eliminar este registro de recepción?')) {
         let lista = obtenerRegistros();
@@ -96,13 +79,8 @@ function eliminarRegistro(id) {
     }
 }
 
-/* ==========================================================================
-   SECCIÓN 4: HELPERS VISUALES Y RENDERIZADO
-   ========================================================================== */
-
-// CAMBIO / NUEVA FUNCIÓN: Retorna la clase CSS correspondiente según el avance real
 function obtenerClaseEstado(estado) {
-    switch (estado) {
+    switch(estado) {
         case 'En reparación':
             return 'estado-reparacion';
         case 'Listo':
@@ -113,29 +91,36 @@ function obtenerClaseEstado(estado) {
     }
 }
 
-// Dibuja la tabla completa en pantalla
 function renderizarTabla() {
     const registros = obtenerRegistros();
+    const textoBusqueda = inputBusqueda ? inputBusqueda.value.toLowerCase().trim() : '';
+
+    const registrosFiltrados = registros.filter(item => {
+        const clienteMatch = item.cliente.toLowerCase().includes(textoBusqueda);
+        const placasMatch = item.placas.toLowerCase().includes(textoBusqueda);
+        return clienteMatch || placasMatch;
+    });
+
     tablaCuerpo.innerHTML = '';
 
-    // Actualiza contador de vehículos
-    contadorVehiculos.textContent = `${registros.length} vehículo${registros.length === 1 ? '' : 's'}`;
+    contadorVehiculos.textContent = `${registrosFiltrados.length} vehículo${registrosFiltrados.length === 1 ? '' : 's'}`;
 
-    if (registros.length === 0) {
+    if (registrosFiltrados.length === 0) {
         sinRegistros.classList.remove('d-none');
         return;
     }
 
     sinRegistros.classList.add('d-none');
 
+
+    registrosFiltrados.forEach(item => {
+
     registros.forEach(item => {
-        // Fallback: si el registro no tenía campo 'estado' (datos antiguos), asume 'En revisión'
+
         const estadoActual = item.estado || 'En revisión';
         const claseColorEstado = obtenerClaseEstado(estadoActual);
 
         const tr = document.createElement('tr');
-        
-        // CAMBIO: Se inserta el <select> interactivo con eventos onchange y opciones preseleccionadas
         tr.innerHTML = `
             <td>
                 <div class="fw-bold text-primary">#${item.id.toString().slice(-4)}</div>
@@ -150,25 +135,24 @@ function renderizarTabla() {
                 <small class="text-muted"><i class="bi bi-telephone"></i> ${item.telefono}</small>
             </td>
             <td>
-                <span class="d-inline-block text-truncate" style="max-width: 170px;" title="${item.problema}">
+                <span class="d-inline-block text-truncate" style="max-width: 180px;" title="${item.problema}">
                     ${item.problema}
                 </span>
             </td>
             <td>
-                <select class="form-select form-select-sm select-estado ${claseColorEstado}" 
-                        onchange="cambiarEstado(${item.id}, this.value)"
-                        title="Cambiar estado del trabajo">
+                <select class="form-select form-select-sm select-estado ${claseColorEstado}" onchange="cambiarEstado(${item.id}, this.value)">
                     <option value="En revisión" ${estadoActual === 'En revisión' ? 'selected' : ''}>🟡 En revisión</option>
                     <option value="En reparación" ${estadoActual === 'En reparación' ? 'selected' : ''}>🔵 En reparación</option>
                     <option value="Listo" ${estadoActual === 'Listo' ? 'selected' : ''}>🟢 Listo</option>
                 </select>
             </td>
             <td class="text-center">
-                <button class="btn btn-outline-danger btn-sm" onclick="eliminarRegistro(${item.id})" title="Dar salida / Eliminar">
+                <button class="btn btn-outline-danger btn-sm" onclick="eliminarRegistro(${item.id})" title="Eliminar / Dar salida">
                     <i class="bi bi-trash"></i>
                 </button>
             </td>
         `;
         tablaCuerpo.appendChild(tr);
     });
+});
 }
