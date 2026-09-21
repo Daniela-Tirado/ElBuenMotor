@@ -1,66 +1,43 @@
-/* ==========================================================================
-   SECCIÓN 1: IDENTIDAD VISUAL DEL TALLER
-   Estilos personalizados con el color corporativo #057050
-   ========================================================================== */
-
-/* Fondo corporativo para cabeceras y tarjetas principales */
+/* Estilos personalizados con el color #057050 */
 .bg-custom {
     background-color: #057050 !important;
     color: #ffffff !important;
 }
-
-/* Botón principal de guardado */
 .btn-custom {
     background-color: #057050;
     border-color: #057050;
     color: #ffffff;
 }
-
-/* Estados interactivos del botón (hover, focus, active) */
-.btn-custom:hover, 
-.btn-custom:focus, 
-.btn-custom:active {
+.btn-custom:hover, .btn-custom:focus, .btn-custom:active {
     background-color: #045a40;
     border-color: #045a40;
     color: #ffffff;
 }
-
-/* Tipografía corporativa */
 .text-custom {
     color: #057050 !important;
 }
 
-/* ==========================================================================
-   SECCIÓN 2: NUEVO - ESTADOS DE LAS ÓRDENES DE SERVICIO
-   Colores contextuales de Bootstrap adaptados para badges y selects de estado
-   ========================================================================== */
-
-/* Estado inicial: Vehículo en diagnóstico o inspección previa (Tono amarillo) */
+/* Badges y estilos de estados del taller */
 .estado-revision {
     background-color: #fff3cd !important;
     color: #664d03 !important;
     border-color: #ffe69c !important;
 }
 
-/* Estado activo: Mecánico trabajando activamente en el vehículo (Tono azul) */
 .estado-reparacion {
     background-color: #cff4fc !important;
     color: #055160 !important;
     border-color: #b6effb !important;
 }
 
-/* Estado completado: Vehículo terminado y listo para entrega (Tono verde) */
 .estado-listo {
     background-color: #d1e7dd !important;
     color: #0f5132 !important;
     border-color: #badbcc !important;
 }
 
-/* Ajustes tipográficos y de cursor para el selector de estado en la tabla */
 .select-estado {
     font-weight: 600;
     cursor: pointer;
-    border-width: 1px;
-    border-style: solid;
-    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
 }
